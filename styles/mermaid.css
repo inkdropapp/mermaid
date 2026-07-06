@@ -92,6 +92,7 @@
       .mermaid-diagram-content {
         width: 100%;
         height: 100%;
+        user-select: text;
 
         /* The pan/zoom container fills the canvas so the SVG can size to both axes. */
         > div {
