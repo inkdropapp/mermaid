@@ -9,10 +9,6 @@
   "license": "MIT",
   "repository": "https://github.com/inkdropapp/inkdrop-mermaid",
   "main": "./lib/index",
-  "styleSheets": [
-    "mermaid.css",
-    "fullscreen.css"
-  ]
   "scripts": {
     "dev": "pnpm copy-styles && tsdown --watch",
     "build": "pnpm copy-styles && tsdown",
@@ -34,5 +30,9 @@
   "engines": {
     "inkdrop": "^6.0.0"
   },
-  "builtin": true
+  "builtin": true,
+  "styleSheets": [
+    "mermaid.css",
+    "fullscreen.css"
+  ]
 }
