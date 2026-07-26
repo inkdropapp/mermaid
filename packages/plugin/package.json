@@ -7,7 +7,7 @@
     "mermaid"
   ],
   "license": "MIT",
-  "repository": "https://github.com/inkdropapp/inkdrop-mermaid",
+  "repository": "https://github.com/inkdropapp/mermaid",
   "main": "./lib/index",
   "scripts": {
     "dev": "pnpm copy-styles && tsdown --watch",

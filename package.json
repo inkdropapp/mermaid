@@ -3,7 +3,7 @@
   "private": true,
   "description": "Workspace for the Inkdrop Mermaid plugin and the @inkdropapp/mermaid rendering package",
   "license": "MIT",
-  "repository": "https://github.com/inkdropapp/inkdrop-mermaid",
+  "repository": "https://github.com/inkdropapp/mermaid",
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
