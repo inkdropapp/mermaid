@@ -1,27 +1,10 @@
-import { useLocalConfigValue } from 'inkdrop'
 import mermaid, { RenderResult } from 'mermaid'
 import { useState, useEffect, useRef } from 'react'
 
-import { getEnv } from './env'
 import { buildInkdropThemeVariables } from './theme'
 
-export const useConfig = () => {
-  const { config } = getEnv()
-
-  const [toolbar, setToolbar] = useState<boolean>(config.get('mermaid.toolbar'))
-  const [panZoom, setPanZoom] = useState<boolean>(config.get('mermaid.panZoom'))
-
-  useEffect(() => {
-    const toolbarObserver = config.observe('mermaid.toolbar', setToolbar)
-    const panZoomObserver = config.observe('mermaid.panZoom', setPanZoom)
-    return () => {
-      toolbarObserver.dispose()
-      panZoomObserver.dispose()
-    }
-  }, [config])
-
-  return { toolbar, panZoom }
-}
+/** Default wait for a newly-selected theme's stylesheet to swap in. */
+export const DEFAULT_THEME_SWAP_DELAY_MS = 400
 
 const srgbColorPattern = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)$/
 
@@ -47,7 +30,7 @@ const toKhromaColor = (computedColor: string): string => {
 }
 
 /**
- * Resolve Mermaid's `themeVariables` from Inkdrop's `--mermaid-*` CSS variables.
+ * Resolve Mermaid's `themeVariables` from the host's `--mermaid-*` CSS variables.
  *
  * We can't read the custom properties directly: their values are `light-dark()`
  * / nested `var()` expressions that only collapse to a colour when *used*. So we
@@ -60,7 +43,7 @@ const toKhromaColor = (computedColor: string): string => {
  * Resolving per render means a diagram picks up the theme active when it renders.
  *
  * @param forceLightMode - Pin the probe to `color-scheme: light` so every
- *   `light-dark()` resolves to its light branch regardless of the app theme.
+ *   `light-dark()` resolves to its light branch regardless of the host theme.
  *   Used for print/export, where diagrams should render for white paper.
  */
 const resolveInkdropThemeVariables = (forceLightMode: boolean) => {
@@ -99,16 +82,45 @@ const renderDiagram = async (
   }
 }
 
-export const useMermaidRendering = (id: string, code: string, printMode: boolean) => {
+export interface UseMermaidRenderingOptions {
+  /**
+   * Changes whenever the host's theme changes. Colours are resolved from CSS
+   * and baked into the SVG at render time, so an already-rendered diagram
+   * won't pick up a new theme on its own — a new value here forces a re-render.
+   */
+  themeRevision?: string | number
+  /**
+   * How long to wait after `themeRevision` changes before re-rendering, so the
+   * newly-selected theme's stylesheet has swapped in before the probe
+   * re-resolves `--mermaid-*`. Set `0` for hosts that swap synchronously.
+   */
+  themeSwapDelayMs?: number
+}
+
+/**
+ * Render `code` into a container as an SVG diagram, re-rendering when the code,
+ * the print mode, or the host's theme changes.
+ *
+ * @param id - Unique element id for the generated SVG; must be a valid CSS
+ *   identifier, since it is used as a `querySelector` target.
+ * @returns The render error (if any), the container ref to attach, and a
+ *   `renderNonce` bumped after every successful render so downstream hooks
+ *   (e.g. pan/zoom) can re-attach to the freshly injected SVG.
+ */
+export const useMermaidRendering = (
+  id: string,
+  code: string,
+  printMode: boolean,
+  { themeRevision, themeSwapDelayMs = DEFAULT_THEME_SWAP_DELAY_MS }: UseMermaidRenderingOptions = {}
+) => {
   const [error, setError] = useState<Error | null>(null)
   // Bumped after every successful render so downstream hooks (e.g. pan/zoom)
   // can re-attach to the freshly injected SVG without diffing the DOM.
   const [renderNonce, setRenderNonce] = useState(0)
-  // Bumped when the app theme changes, forcing a re-render: colours are
+  // Bumped when the host theme changes, forcing a re-render: colours are
   // resolved from CSS and baked into the SVG at render time, so an
   // already-rendered diagram won't pick up a new theme on its own.
   const [themeGeneration, setThemeGeneration] = useState(0)
-  const theme = useLocalConfigValue<string>('core.theme')
   const isInitialThemeRef = useRef(true)
 
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -120,9 +132,9 @@ export const useMermaidRendering = (id: string, code: string, printMode: boolean
     }
     const timer = setTimeout(() => {
       setThemeGeneration(generation => generation + 1)
-    }, 400)
+    }, themeSwapDelayMs)
     return () => clearTimeout(timer)
-  }, [theme])
+  }, [themeRevision, themeSwapDelayMs])
 
   useEffect(() => {
     if (!code || !containerRef.current) return

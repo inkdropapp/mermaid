@@ -1,0 +1,38 @@
+{
+  "name": "mermaid",
+  "version": "3.0.1",
+  "description": "Lets you draw diagrams and flowcharts with Mermaid",
+  "keywords": [
+    "inkdrop",
+    "mermaid"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/inkdropapp/mermaid",
+  "main": "./lib/index",
+  "scripts": {
+    "dev": "pnpm copy-styles && tsdown --watch",
+    "build": "pnpm copy-styles && tsdown",
+    "copy-styles": "node ./scripts/copy-styles.mjs",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm -w build"
+  },
+  "devDependencies": {
+    "@inkdropapp/mermaid": "workspace:*",
+    "@inkdropapp/types": "^0.0.9",
+    "@types/node": "^26.0.1",
+    "@types/react": "^19.2.17",
+    "mermaid": "11.16.0",
+    "panzoom": "9.4.4",
+    "playwright": "^1.61.1",
+    "tsdown": "^0.22.3",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "inkdrop": "^6.0.0"
+  },
+  "builtin": true,
+  "styleSheets": [
+    "mermaid.css",
+    "fullscreen.css"
+  ]
+}

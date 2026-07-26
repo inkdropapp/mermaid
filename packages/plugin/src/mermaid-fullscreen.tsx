@@ -1,4 +1,5 @@
 import type { ButtonProps, ModalProps } from '@inkdropapp/types'
+import { useLocalConfigValue } from 'inkdrop'
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 
 import { getEnv } from './env'
@@ -13,10 +14,11 @@ export type MermaidCommands = {
   'mermaid:open-fullscreen': OpenFullscreenDetail
 }
 
-// Lazy-loaded so `mermaid` (pulled in transitively by the stage) stays out of
-// the eager entry bundle — the host below imports nothing heavy.
-const MermaidFullscreenStage = lazy(() =>
-  import('./mermaid-fullscreen-stage').then(m => ({ default: m.MermaidFullscreenStage }))
+// Lazy-loaded so `mermaid` (pulled in transitively by @inkdropapp/mermaid)
+// stays out of the eager entry bundle — this host is registered at activate()
+// and must import nothing heavy.
+const MermaidDiagram = lazy(() =>
+  import('@inkdropapp/mermaid').then(m => ({ default: m.MermaidDiagram }))
 )
 
 /**
@@ -34,6 +36,7 @@ export const MermaidFullscreen: React.FC = () => {
   const Button = getEnv().components.getComponentClass<ButtonProps>('Button')!
   const [diagram, setDiagram] = useState<OpenFullscreenDetail | null>(null)
   const close = useCallback(() => setDiagram(null), [])
+  const theme = useLocalConfigValue<string>('core.theme')
 
   useEffect(() => {
     const sub = getEnv().commands.add<MermaidCommands>(document.body, {
@@ -55,10 +58,16 @@ export const MermaidFullscreen: React.FC = () => {
       onBackdropClick={close}
       onEscKeyDown={close}
     >
-      <div className="mermaid-fullscreen-stage mermaid-diagram">
+      <div className="mermaid-fullscreen-stage">
         {diagram && (
           <Suspense fallback={null}>
-            <MermaidFullscreenStage code={diagram.code} panZoom={diagram.panZoom} />
+            <MermaidDiagram
+              code={diagram.code}
+              panZoom={diagram.panZoom}
+              Button={Button}
+              themeRevision={theme}
+              fill
+            />
           </Suspense>
         )}
         <Button className="close-button" icon="close" tooltip="Close" onClick={close} />

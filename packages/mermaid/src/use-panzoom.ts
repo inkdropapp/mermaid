@@ -40,7 +40,7 @@ export const usePanZoom = (
     const container = containerRef.current
     if (!container || !container.parentElement || !container.querySelector('svg')) return
 
-    let observer: IntersectionObserver | null = null
+    let observer: ResizeObserver | null = null
     let detachListeners: (() => void) | null = null
 
     const init = () => {
@@ -111,10 +111,12 @@ export const usePanZoom = (
       observer = null
     }
 
-    // Init immediately if visible; otherwise wait until the pane gains size.
+    // Init immediately if sized; otherwise a ResizeObserver catches the
+    // container gaining size later (e.g. its pane leaving `display: none`) —
+    // unlike IntersectionObserver, it fires on any real size change.
     init()
     if (!instanceRef.current) {
-      observer = new IntersectionObserver(() => init())
+      observer = new ResizeObserver(() => init())
       observer.observe(container)
     }
 

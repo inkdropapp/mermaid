@@ -1,0 +1,104 @@
+.mermaid-diagram {
+  position: relative;
+
+  .mermaid-diagram-content {
+    overflow: hidden;
+  }
+}
+
+.mermaid-dot-grid {
+  background-image: radial-gradient(
+    circle,
+    light-dark(var(--transparent-black), var(--transparent-white)) 1px,
+    transparent 1px
+  );
+  background-size: 16px 16px;
+}
+
+/* Floating toolbar: hidden until the diagram is hovered, anchored bottom-right.
+   It is a sibling of the pan/zoom container so it stays put while the diagram
+   is panned/zoomed. */
+.mermaid-toolbar {
+  position: absolute;
+  right: 0.2em;
+  bottom: 0.2em;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+  user-select: none;
+
+  .mermaid-toolbar-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 4px;
+    border-radius: 6px;
+    background: var(--editor-floating-actions-background);
+
+    button {
+      display: flex;
+      padding: 2px;
+      border: none;
+      background: none;
+      cursor: pointer;
+
+      svg {
+        color: var(--muted-text-color);
+      }
+
+      &:hover svg {
+        color: var(--text-color);
+      }
+    }
+  }
+}
+
+.mermaid-diagram:hover .mermaid-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* `fill` variant — the diagram sizes to its container rather than its natural
+   size. For host-provided full-screen / lightbox shells, which supply the
+   surrounding chrome (backdrop, padding, close button) themselves. */
+.mermaid-diagram.mermaid-diagram-fill {
+  width: 100%;
+  height: 100%;
+
+  /* Keep the pan/zoom owner full-size with no layout offset (e.g. flex
+     centering): panzoom positions via a top-left-origin transform and clamps
+     drag bounds to that origin, so an offset element hits the clamp early. */
+  .mermaid-diagram-content {
+    width: 100%;
+    height: 100%;
+    user-select: text;
+
+    /* The pan/zoom container fills the canvas so the SVG can size to both axes. */
+    > div {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Drop Mermaid's inline `max-width: <natural>px` cap and let the SVG fill the
+       canvas in both axes; its viewBox `preserveAspectRatio` ("meet") then scales
+       the diagram to fit (contain) and centres it, so tall diagrams fit the
+       height too — the box stays at the owner's top-left, so dragging is unaffected. */
+    svg {
+      max-width: none !important;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  /* Not hover-gated: in a full-screen shell the controls are the only way out. */
+  .mermaid-toolbar {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
