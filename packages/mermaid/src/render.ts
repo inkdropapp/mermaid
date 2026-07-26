@@ -127,6 +127,9 @@ export const useMermaidRendering = (
   // already-rendered diagram won't pick up a new theme on its own.
   const [themeGeneration, setThemeGeneration] = useState(0)
   const renderedRevisionRef = useRef(themeRevision)
+  // Distinguishes each render's id from the one already on screen — see the
+  // `renderId` note in the render effect.
+  const renderCountRef = useRef(0)
 
   const containerRef = useRef<HTMLDivElement | null>(null)
 
@@ -149,13 +152,15 @@ export const useMermaidRendering = (
     }
     let cancelled = false
 
-    renderDiagram(id, code, printMode)
+    const renderId = `${id}-${++renderCountRef.current}`
+
+    renderDiagram(renderId, code, printMode)
       .then(({ svg, bindFunctions }) => {
         if (cancelled || !svg.length) return
 
         removeMermaidTooltips()
         container.innerHTML = svg
-        const diagram = container.querySelector<SVGSVGElement>(`#${id}`)
+        const diagram = container.querySelector<SVGSVGElement>(`#${renderId}`)
         if (!diagram) return
 
         bindFunctions?.(container)
