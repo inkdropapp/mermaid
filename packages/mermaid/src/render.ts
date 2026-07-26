@@ -61,6 +61,11 @@ const resolveInkdropThemeVariables = (forceLightMode: boolean) => {
   }
 }
 
+/** Mermaid appends tooltip nodes to `<body>`, outliving the diagram's own DOM. */
+const removeMermaidTooltips = () => {
+  document.querySelectorAll('body > div.mermaidTooltip').forEach(el => el.remove())
+}
+
 const renderDiagram = async (
   id: string,
   code: string,
@@ -135,14 +140,20 @@ export const useMermaidRendering = (
   }, [themeRevision, themeSwapDelayMs])
 
   useEffect(() => {
-    if (!code || !containerRef.current) return
-    let cancelled = false
     const container = containerRef.current
+    if (!container) return
+    if (!code) {
+      container.innerHTML = ''
+      removeMermaidTooltips()
+      return
+    }
+    let cancelled = false
 
     renderDiagram(id, code, printMode)
       .then(({ svg, bindFunctions }) => {
         if (cancelled || !svg.length) return
 
+        removeMermaidTooltips()
         container.innerHTML = svg
         const diagram = container.querySelector<SVGSVGElement>(`#${id}`)
         if (!diagram) return
@@ -152,18 +163,15 @@ export const useMermaidRendering = (
         setRenderNonce(nonce => nonce + 1)
       })
       .catch(err => {
-        if (!cancelled) {
-          container.innerHTML = ''
-          setError(err)
-        }
+        if (!cancelled) setError(err)
       })
 
     return () => {
       cancelled = true
-      container.innerHTML = ''
-      document.querySelectorAll('body > div.mermaidTooltip').forEach(el => el.remove())
     }
   }, [id, code, printMode, themeGeneration])
+
+  useEffect(() => removeMermaidTooltips, [])
 
   return { error, containerRef, renderNonce }
 }
