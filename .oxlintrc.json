@@ -25,5 +25,5 @@
       "version": "18"
     }
   },
-  "ignorePatterns": ["lib/**", "node_modules/**"]
+  "ignorePatterns": ["**/lib/**", "**/dist/**", "**/node_modules/**"]
 }

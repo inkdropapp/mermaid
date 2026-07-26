@@ -1,35 +1,18 @@
 {
-  "name": "mermaid",
-  "version": "3.0.1",
-  "description": "Lets you draw diagrams and flowcharts with Mermaid",
-  "keywords": [
-    "inkdrop",
-    "mermaid"
-  ],
+  "name": "inkdrop-mermaid-workspace",
+  "private": true,
+  "description": "Workspace for the Inkdrop Mermaid plugin and the @inkdropapp/mermaid rendering package",
   "license": "MIT",
   "repository": "https://github.com/inkdropapp/inkdrop-mermaid",
-  "main": "./lib/index",
   "scripts": {
-    "dev": "tsdown --watch",
-    "build": "tsdown",
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
     "format": "oxfmt",
     "lint": "oxlint",
-    "prepublishOnly": "npm run build"
+    "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "@inkdropapp/types": "^0.0.9",
-    "@types/node": "^26.0.1",
-    "@types/react": "^19.2.17",
-    "mermaid": "11.16.0",
-    "oxfmt": "0.56.0",
-    "oxlint": "1.71.0",
-    "panzoom": "9.4.4",
-    "playwright": "^1.61.1",
-    "tsdown": "^0.22.3",
-    "typescript": "^6.0.3"
-  },
-  "engines": {
-    "inkdrop": "^6.0.0"
-  },
-  "builtin": true
+    "oxfmt": "^0.60.0",
+    "oxlint": "^1.75.0"
+  }
 }

@@ -1,0 +1,28 @@
+/* Full-screen viewer chrome — Inkdrop's Modal sized to a large canvas, with the
+   diagram itself rendered by @inkdropapp/mermaid's `fill` variant (which owns
+   the sizing and keeps the toolbar visible). Everything here is the shell:
+   modal dimensions, the padded stage, and the close button. */
+.modal-container.mermaid-fullscreen {
+  .modal-content {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+
+    .mermaid-fullscreen-stage {
+      /* Containing block for the absolutely positioned close button. */
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--modal-box-content-background);
+      padding: 2em;
+
+      .ui.button.close-button {
+        position: absolute;
+        top: 2em;
+        right: 2em;
+        z-index: 1;
+      }
+    }
+  }
+}
