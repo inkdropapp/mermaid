@@ -121,16 +121,14 @@ export const useMermaidRendering = (
   // resolved from CSS and baked into the SVG at render time, so an
   // already-rendered diagram won't pick up a new theme on its own.
   const [themeGeneration, setThemeGeneration] = useState(0)
-  const isInitialThemeRef = useRef(true)
+  const renderedRevisionRef = useRef(themeRevision)
 
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (isInitialThemeRef.current) {
-      isInitialThemeRef.current = false
-      return
-    }
+    if (renderedRevisionRef.current === themeRevision) return
     const timer = setTimeout(() => {
+      renderedRevisionRef.current = themeRevision
       setThemeGeneration(generation => generation + 1)
     }, themeSwapDelayMs)
     return () => clearTimeout(timer)
