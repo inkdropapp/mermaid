@@ -1,6 +1,6 @@
 {
   "name": "@inkdropapp/mermaid",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Host-agnostic React components for rendering themed, pannable Mermaid diagrams",
   "keywords": [
     "diagram",
