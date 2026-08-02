@@ -45,12 +45,16 @@ const toKhromaColor = (computedColor: string): string => {
  * @param forceLightMode - Pin the probe to `color-scheme: light` so every
  *   `light-dark()` resolves to its light branch regardless of the host theme.
  *   Used for print/export, where diagrams should render for white paper.
+ * @param themeHost - Element the probe mounts inside, so `--mermaid-*` resolve
+ *   against every theme scope wrapping the *diagram* — a host can scope a
+ *   theme's variables to a class partway down the tree (e.g. a themed landing
+ *   section) and a diagram inside it follows that theme, not `:root`'s.
  */
-const resolveInkdropThemeVariables = (forceLightMode: boolean) => {
+const resolveInkdropThemeVariables = (forceLightMode: boolean, themeHost: HTMLElement) => {
   const probe = document.createElement('span')
   probe.style.cssText = 'position:absolute;width:0;height:0;visibility:hidden;pointer-events:none'
   if (forceLightMode) probe.style.colorScheme = 'light'
-  document.body.appendChild(probe)
+  themeHost.appendChild(probe)
   try {
     return buildInkdropThemeVariables(token => {
       probe.style.color = `var(--mermaid-${token})`
@@ -69,13 +73,14 @@ const removeMermaidTooltips = () => {
 const renderDiagram = async (
   id: string,
   code: string,
-  printMode: boolean
+  printMode: boolean,
+  themeHost: HTMLElement
 ): Promise<RenderResult> => {
   mermaid.initialize({
     startOnLoad: false,
     suppressErrorRendering: true,
     theme: 'base',
-    themeVariables: resolveInkdropThemeVariables(printMode)
+    themeVariables: resolveInkdropThemeVariables(printMode, themeHost)
   })
   try {
     return await mermaid.render(id, code)
@@ -154,7 +159,7 @@ export const useMermaidRendering = (
 
     const renderId = `${id}-${++renderCountRef.current}`
 
-    renderDiagram(renderId, code, printMode)
+    renderDiagram(renderId, code, printMode, container)
       .then(({ svg, bindFunctions }) => {
         if (cancelled || !svg.length) return
 
