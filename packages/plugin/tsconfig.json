@@ -8,9 +8,6 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "paths": {
-      "inkdrop": ["./node_modules/@inkdropapp/types/src/inkdrop-module/index.d.ts"]
-    },
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
