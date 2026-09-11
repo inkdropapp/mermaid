@@ -32,8 +32,10 @@ const MermaidDiagram = lazy(() =>
  * modal. Esc / backdrop / the close button dismiss it.
  */
 export const MermaidFullscreen: React.FC = () => {
-  const Modal = getEnv().components.getComponentClass<ModalProps>('Modal')!
-  const Button = getEnv().components.getComponentClass<ButtonProps>('Button')!
+  const [{ Modal, Button }] = useState(() => ({
+    Modal: getEnv().components.getComponentClass<ModalProps>('Modal')!,
+    Button: getEnv().components.getComponentClass<ButtonProps>('Button')!
+  }))
   const [diagram, setDiagram] = useState<OpenFullscreenDetail | null>(null)
   const close = useCallback(() => setDiagram(null), [])
   const theme = useLocalConfigValue<string>('core.theme')

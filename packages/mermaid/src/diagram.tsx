@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useState } from 'react'
 
 import { useMermaidRendering, type UseMermaidRenderingOptions } from './render'
 import { MermaidToolbar, type MermaidButtonProps } from './toolbar'
@@ -35,14 +35,13 @@ export interface MermaidDiagramProps extends UseMermaidRenderingOptions {
 }
 
 const useDiagramId = () =>
-  useMemo(
+  useState(
     () =>
       `mermaid-${Math.random()
         .toString(36)
         .replace(/[^a-z]+/g, '')
-        .substring(0, 5)}`,
-    []
-  )
+        .substring(0, 5)}`
+  )[0]
 
 /**
  * A rendered Mermaid diagram with optional pan/zoom and a hover toolbar.

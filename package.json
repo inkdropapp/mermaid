@@ -12,7 +12,7 @@
     "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "oxfmt": "^0.60.0",
-    "oxlint": "^1.75.0"
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0"
   }
 }
