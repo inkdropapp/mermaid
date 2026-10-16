@@ -49,9 +49,9 @@ export function Diagram() {
 With a host button component and a theme signal:
 
 ```tsx
+import { MarkdownRendererContext } from '@inkdropapp/markdown'
 import { MermaidDiagram } from '@inkdropapp/mermaid'
 import { UIButton } from '@inkdropapp/uikit'
-import { MarkdownRendererContext } from '@inkdropapp/markdown'
 
 function Diagram({ code }: { code: string }) {
   const { printMode } = useContext(MarkdownRendererContext)

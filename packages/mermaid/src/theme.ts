@@ -185,6 +185,19 @@ const tokens: Record<string, string> = {
   emArrowhead: 'em-arrowhead-color',
   emRelationStroke: 'em-relation-color',
 
+  // --- Use case ---
+  usecaseActorBkg: 'usecase-actor-background-color',
+  usecaseActorBorder: 'usecase-actor-border-color',
+  usecaseBkg: 'usecase-background-color',
+  usecaseBorder: 'usecase-border-color',
+  usecaseBoundaryBkg: 'usecase-boundary-background-color',
+  usecaseBoundaryBorder: 'usecase-boundary-border-color',
+  usecaseIncludeLine: 'usecase-include-line-color',
+  usecaseExtendLine: 'usecase-extend-line-color',
+
+  // --- Agentflow ---
+  flowContainerStroke: 'flow-container-border-color',
+
   // --- Seed palette: drives Mermaid's categorical scales (pie / git / quadrant) ---
   primaryColor: 'primary-color',
   secondaryColor: 'secondary-color',
@@ -281,19 +294,35 @@ const buildNestedGroups = (resolve: (token: string) => string): Record<string, u
  * Mermaid's `base` theme runs colours through **khroma**, which throws on a raw
  * `var()`. Rather than patch khroma, we hand it concrete colours: every
  * `--mermaid-*` token is resolved to an `rgb(...)` value by `resolve` (see
- * `resolveInkdropThemeVariables` in `utils.ts`) at render time. That includes
+ * `resolveInkdropThemeVariables` in `render.ts`) at render time. That includes
  * the seed palette, so even the categorical scales (pie / git / quadrant) that
  * Mermaid derives from `primaryColor`/`secondaryColor`/`tertiaryColor` follow
  * the active theme.
  *
+ * Mermaid's `neo` look (the per-diagram default for flowchart, state, class,
+ * sequence, ER and others since Mermaid 12) paints node shadows with
+ * `filter: <dropShadow>`. `base` ships an opaque light-grey shadow, so the
+ * shadow is driven from `--mermaid-node-shadow` (a `filter` value) instead.
+ * Without `resolveFilter` it is turned off.
+ *
  * @param resolve - Maps a `--mermaid-*` token (the suffix after `--mermaid-`) to
  *   the concrete colour the active theme paints it, e.g.
  *   `'node-background-color'` → `'rgb(...)'`.
+ * @param resolveFilter - Maps a `--mermaid-*` token to its resolved `filter`
+ *   value, e.g. `'node-shadow'` → `'drop-shadow(rgba(0, 0, 0, 0.15) 0px 1px 2px)'`.
  * @returns A `themeVariables` map of resolved colours (plus the nested
  *   per-diagram config objects).
  */
-export const buildInkdropThemeVariables = (resolve: (token: string) => string): ThemeVariables =>
+export const buildInkdropThemeVariables = (
+  resolve: (token: string) => string,
+  resolveFilter?: (token: string) => string
+): ThemeVariables =>
   ({
     ...Object.fromEntries(Object.entries(tokens).map(([key, token]) => [key, resolve(token)])),
-    ...buildNestedGroups(resolve)
+    ...buildNestedGroups(resolve),
+    dropShadow: resolveFilter?.('node-shadow') ?? 'none',
+    // Keep neo's node strokes on the themed `nodeBorder` instead of a gradient.
+    // Pinned here rather than relying on Mermaid switching the gradient off
+    // whenever `nodeBorder` is overridden.
+    useGradient: false
   }) as ThemeVariables

@@ -41,6 +41,9 @@ const toKhromaColor = (computedColor: string): string => {
  * `var()`) is what lets Mermaid's `base` theme run them through khroma safely.
  *
  * Resolving per render means a diagram picks up the theme active when it renders.
+ * The node shadow (`--mermaid-node-shadow`) is a `filter` value, so it goes
+ * through the probe's `filter` instead, collapsing the `light-dark()` colour
+ * inside `drop-shadow()` the same way.
  *
  * @param forceLightMode - Pin the probe to `color-scheme: light` so every
  *   `light-dark()` resolves to its light branch regardless of the host theme.
@@ -56,14 +59,32 @@ const resolveInkdropThemeVariables = (forceLightMode: boolean, themeHost: HTMLEl
   if (forceLightMode) probe.style.colorScheme = 'light'
   themeHost.appendChild(probe)
   try {
-    return buildInkdropThemeVariables(token => {
-      probe.style.color = `var(--mermaid-${token})`
-      return toKhromaColor(getComputedStyle(probe).color)
-    })
+    return buildInkdropThemeVariables(
+      token => {
+        probe.style.color = `var(--mermaid-${token})`
+        return toKhromaColor(getComputedStyle(probe).color)
+      },
+      token => {
+        probe.style.filter = `var(--mermaid-${token})`
+        return getComputedStyle(probe).filter
+      }
+    )
   } finally {
     probe.remove()
   }
 }
+
+/**
+ * Point the neo look's SVG shadow filters at the themed `dropShadow`.
+ *
+ * Besides the `filter: dropShadow` CSS, neo also sets `filter="url(#<id>-drop-shadow)"`
+ * attributes that reference a hard-coded `<feDropShadow>` (a 4px offset at 6% opacity).
+ * Sequence diagrams rely on these for actors and pick a white flood colour for
+ * every theme but `redux`, so under our `base` theme the shadow vanished on
+ * light backgrounds. The CSS `filter` property overrides the attribute.
+ */
+const buildShadowThemeCSS = (dropShadow: string) =>
+  `[filter$="-drop-shadow)"] { filter: ${dropShadow}; }`
 
 /** Mermaid appends tooltip nodes to `<body>`, outliving the diagram's own DOM. */
 const removeMermaidTooltips = () => {
@@ -76,11 +97,13 @@ const renderDiagram = async (
   printMode: boolean,
   themeHost: HTMLElement
 ): Promise<RenderResult> => {
+  const themeVariables = resolveInkdropThemeVariables(printMode, themeHost)
   mermaid.initialize({
     startOnLoad: false,
     suppressErrorRendering: true,
     theme: 'base',
-    themeVariables: resolveInkdropThemeVariables(printMode, themeHost)
+    themeVariables,
+    themeCSS: buildShadowThemeCSS(themeVariables.dropShadow)
   })
   try {
     return await mermaid.render(id, code)
