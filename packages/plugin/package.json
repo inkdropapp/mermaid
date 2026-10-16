@@ -21,7 +21,7 @@
     "@inkdropapp/types": "^0.0.12",
     "@types/node": "^26.5.0",
     "@types/react": "^19.2.18",
-    "mermaid": "11.17.2",
+    "mermaid": "12.1.0",
     "panzoom": "9.4.4",
     "playwright": "^1.63.0",
     "tsdown": "^0.23.0",
