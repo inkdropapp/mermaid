@@ -18,13 +18,13 @@
   },
   "devDependencies": {
     "@inkdropapp/mermaid": "workspace:*",
-    "@inkdropapp/types": "^0.0.12",
-    "@types/node": "^26.5.0",
-    "@types/react": "^19.2.18",
+    "@inkdropapp/types": "^0.1.1",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
     "mermaid": "12.1.0",
     "panzoom": "9.4.4",
-    "playwright": "^1.63.0",
-    "tsdown": "^0.23.0",
+    "playwright": "^1.64.0",
+    "tsdown": "^0.23.1",
     "typescript": "^7.0.2"
   },
   "engines": {
