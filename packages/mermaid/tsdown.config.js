@@ -9,9 +9,8 @@ export default defineConfig({
   clean: true,
   treeshake: true,
   deps: {
-    // `mermaid` / `panzoom` / `react` are peers: hosts install and dedupe them.
-    // Bundling `mermaid` here would give a page two copies racing over
-    // `mermaid.initialize()`'s module-global config.
-    neverBundle: ['react', 'react/jsx-runtime', 'mermaid', 'panzoom']
+    // `react` is a peer and `pele` a dependency: hosts install and dedupe
+    // them, and bundle Pele themselves (the plugin does).
+    neverBundle: ['react', 'react/jsx-runtime', 'pele']
   }
 })

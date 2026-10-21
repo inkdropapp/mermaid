@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { ExpandIcon, ResetIcon, ZoomInIcon, ZoomOutIcon } from './icons'
-import type { PanZoomControls } from './use-panzoom'
+import type { ZoomControls } from './zoom-controls'
 
 /**
  * The structural shape the toolbar needs from a host's button component.
@@ -26,8 +26,8 @@ export interface MermaidToolbarProps {
   error: Error | null
   /** Resolved `panZoom` flag; the zoom buttons render only when it is on. */
   panZoom: boolean
-  /** Imperative zoom controls from `usePanZoom`. */
-  controls: PanZoomControls
+  /** Imperative zoom controls from `useZoomControls`. */
+  controls: ZoomControls
   /** The host's button component; without one the toolbar renders nothing. */
   Button?: React.ComponentType<MermaidButtonProps>
   /** When set, show an Expand button that opens the host's full-screen view. */
@@ -38,9 +38,9 @@ export interface MermaidToolbarProps {
  * Floating controls overlaid on a rendered diagram, hidden until the diagram is
  * hovered (the fade-in lives in styles/mermaid.css).
  *
- * It renders as a sibling of `.mermaid-diagram-content` (the pan/zoom owner) —
- * never inside it — so panzoom, which binds its gesture listeners on that
- * content wrapper, never receives the toolbar's pointer events. The buttons come
+ * It renders as a sibling of `.mermaid-diagram-content` — never inside the
+ * diagram container — so Pele's zoom, which binds its gesture listeners on that
+ * container, never receives the toolbar's pointer events. The buttons come
  * from the host (see {@link MermaidButtonProps}) and are rendered `bare` so the
  * dark-pill styling applies instead of a default button look.
  *

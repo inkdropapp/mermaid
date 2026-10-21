@@ -24,8 +24,8 @@ const Mermaid: React.FC<CodeComponentProps> = ({ children }) => {
 
   const { toolbar, panZoom } = useConfig()
   const { printMode } = useContext(markdownRenderer.Context)
-  // Diagram colours are baked in at render time, so a theme switch needs an
-  // explicit re-render; this is the same keyPath the app's theme manager watches.
+  // Colours follow the theme live, but a theme can change the font labels are
+  // measured in; this is the same keyPath the app's theme manager watches.
   const theme = useLocalConfigValue<string>('core.theme')
 
   // Dispatched on `document.body`, which is where MermaidFullscreen registers

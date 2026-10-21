@@ -1,210 +1,232 @@
-import mermaid, { RenderResult } from 'mermaid'
-import { useState, useEffect, useRef } from 'react'
+import {
+  mount,
+  type Mounted,
+  type MountOptions,
+  type RenderResult,
+  type Zoom,
+  type ZoomOptions
+} from 'pele'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { buildInkdropThemeVariables } from './theme'
+import { RENDER_OPTIONS } from './render-options'
 
 /** Default wait for a newly-selected theme's stylesheet to swap in. */
 export const DEFAULT_THEME_SWAP_DELAY_MS = 400
 
-const srgbColorPattern = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)$/
+/**
+ * Pele's zoom with its own buttons off (the toolbar drives it), and in `fill`
+ * able to enlarge any diagram. Module-level, because Pele rebuilds the zoom
+ * whenever `MountOptions.zoom` changes identity.
+ */
+const INLINE_ZOOM_OPTIONS: ZoomOptions = { controls: false }
+const FILL_ZOOM_OPTIONS: ZoomOptions = { always: true, controls: false }
 
 /**
- * Serialize a browser-computed colour into a form khroma (Mermaid's colour
- * maths) can parse.
- *
- * `getComputedStyle().color` yields legacy `rgb()` / `rgba()` for most colours,
- * but modern engines serialize `color-mix()` / `color()` results as the CSS
- * Color 4 form `color(srgb r g b [/ a])`, which khroma rejects ("Unsupported
- * color format") — crashing the render. Convert that one form to `rgb()` /
- * `rgba()`; pass every already-legacy value through untouched.
+ * Pele's own test for a diagram it shrank to fit. Inline, only those are
+ * zoomable: a zoomable diagram is a tab stop, takes double-clicks, and sets
+ * `touch-action: pan-y`, which blocks page pinch-zoom over it on mobile.
  */
-const toKhromaColor = (computedColor: string): string => {
-  const match = srgbColorPattern.exec(computedColor)
-  if (!match) return computedColor
-  const [red, green, blue] = [match[1], match[2], match[3]].map(channel =>
-    Math.round(Math.min(1, Math.max(0, Number(channel))) * 255)
-  )
-  return match[4] === undefined
-    ? `rgb(${red}, ${green}, ${blue})`
-    : `rgba(${red}, ${green}, ${blue}, ${match[4]})`
-}
+const FIT_EPSILON = 0.999
+
+const toError = (err: unknown): Error =>
+  err instanceof Error ? err : new Error('Unknown error', { cause: err })
 
 /**
- * Resolve Mermaid's `themeVariables` from the host's `--mermaid-*` CSS variables.
- *
- * We can't read the custom properties directly: their values are `light-dark()`
- * / nested `var()` expressions that only collapse to a colour when *used*. So we
- * assign each `var(--mermaid-<token>)` to a throwaway probe's `color` and read
- * the browser-computed colour back — exactly the colour the active theme paints,
- * light/dark included — normalising it via `toKhromaColor` so `color-mix()` /
- * `color()` results reach khroma as `rgb()`. Passing concrete colours (not
- * `var()`) is what lets Mermaid's `base` theme run them through khroma safely.
- *
- * Resolving per render means a diagram picks up the theme active when it renders.
- * The node shadow (`--mermaid-node-shadow`) is a `filter` value, so it goes
- * through the probe's `filter` instead, collapsing the `light-dark()` colour
- * inside `drop-shadow()` the same way.
- *
- * @param forceLightMode - Pin the probe to `color-scheme: light` so every
- *   `light-dark()` resolves to its light branch regardless of the host theme.
- *   Used for print/export, where diagrams should render for white paper.
- * @param themeHost - Element the probe mounts inside, so `--mermaid-*` resolve
- *   against every theme scope wrapping the *diagram* — a host can scope a
- *   theme's variables to a class partway down the tree (e.g. a themed landing
- *   section) and a diagram inside it follows that theme, not `:root`'s.
+ * Size the SVG to the largest box that fits the container in both axes, for
+ * the `fill` variant. Pele only fits a diagram to its container's width, so a
+ * tall diagram would otherwise run off the bottom of a full-screen shell.
  */
-const resolveInkdropThemeVariables = (forceLightMode: boolean, themeHost: HTMLElement) => {
-  const probe = document.createElement('span')
-  probe.style.cssText = 'position:absolute;width:0;height:0;visibility:hidden;pointer-events:none'
-  if (forceLightMode) probe.style.colorScheme = 'light'
-  themeHost.appendChild(probe)
-  try {
-    return buildInkdropThemeVariables(
-      token => {
-        probe.style.color = `var(--mermaid-${token})`
-        return toKhromaColor(getComputedStyle(probe).color)
-      },
-      token => {
-        probe.style.filter = `var(--mermaid-${token})`
-        return getComputedStyle(probe).filter
-      }
-    )
-  } finally {
-    probe.remove()
-  }
+const fitToContainer = (container: HTMLElement, { width, height }: RenderResult) => {
+  const svg = container.querySelector<SVGSVGElement>(':scope > svg')
+  const { clientWidth, clientHeight } = container
+  if (!svg || !width || !height || !clientWidth || !clientHeight) return
+  svg.style.width = `${Math.min(clientWidth, (clientHeight * width) / height)}px`
+  svg.style.maxWidth = 'none'
 }
 
 /**
- * Point the neo look's SVG shadow filters at the themed `dropShadow`.
- *
- * Besides the `filter: dropShadow` CSS, neo also sets `filter="url(#<id>-drop-shadow)"`
- * attributes that reference a hard-coded `<feDropShadow>` (a 4px offset at 6% opacity).
- * Sequence diagrams rely on these for actors and pick a white flood colour for
- * every theme but `redux`, so under our `base` theme the shadow vanished on
- * light backgrounds. The CSS `filter` property overrides the attribute.
+ * Move and scale the container's background (the host's dot grid) with the
+ * drawing. Pele pans and zooms by rewriting the SVG's viewBox, so the
+ * container itself never moves; this anchors the grid to the diagram's origin.
  */
-const buildShadowThemeCSS = (dropShadow: string) =>
-  `[filter$="-drop-shadow)"] { filter: ${dropShadow}; }`
-
-/** Mermaid appends tooltip nodes to `<body>`, outliving the diagram's own DOM. */
-const removeMermaidTooltips = () => {
-  document.querySelectorAll('body > div.mermaidTooltip').forEach(el => el.remove())
+const syncBackground = (container: HTMLElement, zoom: Zoom) => {
+  // Where the diagram's origin lands on screen, after the viewBox mapping.
+  const origin = container.querySelector<SVGSVGElement>(':scope > svg')?.getScreenCTM()
+  if (!origin) return
+  const box = container.getBoundingClientRect()
+  container.style.setProperty('--dot-grid-scale', String(zoom.scale / zoom.fit))
+  container.style.setProperty('--dot-grid-x', `${origin.e - box.left}px`)
+  container.style.setProperty('--dot-grid-y', `${origin.f - box.top}px`)
 }
 
-const renderDiagram = async (
-  id: string,
-  code: string,
-  printMode: boolean,
-  themeHost: HTMLElement
-): Promise<RenderResult> => {
-  const themeVariables = resolveInkdropThemeVariables(printMode, themeHost)
-  mermaid.initialize({
-    startOnLoad: false,
-    suppressErrorRendering: true,
-    theme: 'base',
-    themeVariables,
-    themeCSS: buildShadowThemeCSS(themeVariables.dropShadow)
-  })
-  try {
-    return await mermaid.render(id, code)
-  } catch (err) {
-    if (err instanceof Error) {
-      throw err
-    }
-    throw new Error('Unknown error', { cause: err })
-  }
-}
+const GRID_PROPERTIES = ['--dot-grid-scale', '--dot-grid-x', '--dot-grid-y']
 
 export interface UseMermaidRenderingOptions {
   /**
-   * Changes whenever the host's theme changes. Colours are resolved from CSS
-   * and baked into the SVG at render time, so an already-rendered diagram
-   * won't pick up a new theme on its own — a new value here forces a re-render.
+   * Whether the diagram is being rendered for print/export. Pan/zoom is off;
+   * the light colours come from `color-scheme: light` on the diagram root
+   * (see `MermaidDiagram`), not from anything done here.
+   */
+  printMode?: boolean
+  /** Enable Ctrl/Cmd + scroll and pinch zoom, and drag-to-pan while zoomed. */
+  panZoom?: boolean
+  /** Size the diagram to fit its container in both axes. */
+  fill?: boolean
+  /**
+   * Changes whenever the host's theme changes. Colours follow the theme on
+   * their own (they are CSS variables), but a theme can also change the font
+   * labels were measured in — a new value here re-measures them.
    */
   themeRevision?: string | number
   /**
-   * How long to wait after `themeRevision` changes before re-rendering, so the
-   * newly-selected theme's stylesheet has swapped in before the probe
-   * re-resolves `--mermaid-*`. Set `0` for hosts that swap synchronously.
+   * How long to wait after `themeRevision` changes before re-measuring, so the
+   * newly-selected theme's stylesheet has swapped in. Set `0` for hosts that
+   * swap synchronously.
    */
   themeSwapDelayMs?: number
 }
 
 /**
- * Render `code` into a container as an SVG diagram, re-rendering when the code,
- * the print mode, or the host's theme changes.
+ * Render `code` into a container with Pele, re-rendering when the code or the
+ * options change and re-fitting when the container is resized.
  *
- * @param id - Unique element id for the generated SVG; must be a valid CSS
- *   identifier, since it is used as a `querySelector` target.
- * @returns The render error (if any), the container ref to attach, and a
- *   `renderNonce` bumped after every successful render so downstream hooks
- *   (e.g. pan/zoom) can re-attach to the freshly injected SVG.
+ * One `Mounted` lives per container: `mount()` once, then `update()` for new
+ * code. Pele shows a diagram error in place — over the last good drawing while
+ * editing — so the error returned here is only for hiding the toolbar.
+ *
+ * @returns The render error (if any), the container ref to attach, a getter
+ *   for the live Pele zoom (absent while pan/zoom is off), and whether the
+ *   drawn diagram can be zoomed at all.
  */
 export const useMermaidRendering = (
-  id: string,
   code: string,
-  printMode: boolean,
-  { themeRevision, themeSwapDelayMs = DEFAULT_THEME_SWAP_DELAY_MS }: UseMermaidRenderingOptions = {}
+  {
+    printMode = false,
+    panZoom = true,
+    fill = false,
+    themeRevision,
+    themeSwapDelayMs = DEFAULT_THEME_SWAP_DELAY_MS
+  }: UseMermaidRenderingOptions = {}
 ) => {
   const [error, setError] = useState<Error | null>(null)
-  // Bumped after every successful render so downstream hooks (e.g. pan/zoom)
-  // can re-attach to the freshly injected SVG without diffing the DOM.
-  const [renderNonce, setRenderNonce] = useState(0)
-  // Bumped when the host theme changes, forcing a re-render: colours are
-  // resolved from CSS and baked into the SVG at render time, so an
-  // already-rendered diagram won't pick up a new theme on its own.
-  const [themeGeneration, setThemeGeneration] = useState(0)
-  const renderedRevisionRef = useRef(themeRevision)
-  // Distinguishes each render's id from the one already on screen — see the
-  // `renderId` note in the render effect.
-  const renderCountRef = useRef(0)
-
+  const [zoomable, setZoomable] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const mountedRef = useRef<Mounted | null>(null)
+  const renderedRevisionRef = useRef(themeRevision)
+  // The zoom the user chose in `fill` mode, which Pele resets on every resize.
+  const zoomRatioRef = useRef(1)
 
-  useEffect(() => {
-    if (renderedRevisionRef.current === themeRevision) return
-    const timer = setTimeout(() => {
-      renderedRevisionRef.current = themeRevision
-      setThemeGeneration(generation => generation + 1)
-    }, themeSwapDelayMs)
-    return () => clearTimeout(timer)
-  }, [themeRevision, themeSwapDelayMs])
+  /**
+   * After the SVG or the container changed size: re-fit a `fill` diagram and
+   * reapply the user's zoom, then recompute whether the diagram is zoomable.
+   */
+  const relayout = useCallback(
+    (result = mountedRef.current?.result) => {
+      const container = containerRef.current
+      const zoom = mountedRef.current?.zoom
+      if (fill && container && result) {
+        fitToContainer(container, result)
+        // The zoom measured the SVG before it was fitted. (On the very first
+        // render it doesn't exist yet and measures the fitted size itself.)
+        if (zoom) {
+          zoom.refresh()
+          if (zoomRatioRef.current > 1) zoom.zoomTo(zoomRatioRef.current * zoom.fit)
+        }
+      }
+      if (container && zoom) syncBackground(container, zoom)
+      setZoomable(!!zoom && (fill || zoom.fit < FIT_EPSILON))
+    },
+    [fill]
+  )
+
+  const zoomEnabled = panZoom && !printMode
+  const options = useMemo<MountOptions>(
+    () => ({
+      ...RENDER_OPTIONS,
+      zoom: zoomEnabled ? (fill ? FILL_ZOOM_OPTIONS : INLINE_ZOOM_OPTIONS) : false,
+      onRender: result => {
+        relayout(result)
+        setError(null)
+      },
+      onError: err => setError(toError(err))
+    }),
+    [zoomEnabled, fill, relayout]
+  )
 
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
     if (!code) {
-      container.innerHTML = ''
-      removeMermaidTooltips()
+      mountedRef.current?.destroy()
+      mountedRef.current = null
+      container.replaceChildren()
       return
     }
-    let cancelled = false
-
-    const renderId = `${id}-${++renderCountRef.current}`
-
-    renderDiagram(renderId, code, printMode, container)
-      .then(({ svg, bindFunctions }) => {
-        if (cancelled || !svg.length) return
-
-        removeMermaidTooltips()
-        container.innerHTML = svg
-        const diagram = container.querySelector<SVGSVGElement>(`#${renderId}`)
-        if (!diagram) return
-
-        bindFunctions?.(container)
-        setError(null)
-        setRenderNonce(nonce => nonce + 1)
-      })
-      .catch(err => {
-        if (!cancelled) setError(err)
-      })
-
-    return () => {
-      cancelled = true
+    // Diagram errors arrive through onError, but Pele rethrows one that comes
+    // after it swapped the SVG in (an exception in onRender, say). Show it
+    // like any other rather than letting it unmount the host's tree.
+    try {
+      if (mountedRef.current) mountedRef.current.update(code, options)
+      else mountedRef.current = mount(container, code, options)
+    } catch (err) {
+      // The error comes from Pele, an external system, as onError's do.
+      // oxlint-disable-next-line react/set-state-in-effect
+      setError(toError(err))
     }
-  }, [id, code, printMode, themeGeneration])
+  }, [code, options])
 
-  useEffect(() => removeMermaidTooltips, [])
+  useEffect(
+    () => () => {
+      mountedRef.current?.destroy()
+      mountedRef.current = null
+    },
+    []
+  )
 
-  return { error, containerRef, renderNonce }
+  // Pele re-lays-out for width changes, but `fill` also has to follow height,
+  // and a diagram that fits at one width may need shrinking at another.
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || !(zoomEnabled || fill)) return
+    const sizeOf = () => container.clientWidth + container.clientHeight
+    let size = sizeOf()
+    const resizes = new ResizeObserver(() => {
+      size = sizeOf()
+      relayout()
+    })
+    resizes.observe(container)
+
+    // Pele has no zoom event, but zooms by rewriting the SVG's viewBox. On each
+    // rewrite, move the background along, and in `fill` record the user's zoom
+    // unless a resize caused it: Pele's own observers reset the zoom on a
+    // resize before ours (created later) runs.
+    const zooms = zoomEnabled
+      ? new MutationObserver(() => {
+          const zoom = mountedRef.current?.zoom
+          if (!zoom) return
+          if (fill && sizeOf() === size) zoomRatioRef.current = zoom.scale / zoom.fit
+          syncBackground(container, zoom)
+        })
+      : undefined
+    zooms?.observe(container, { subtree: true, attributeFilter: ['viewBox'] })
+    return () => {
+      resizes.disconnect()
+      zooms?.disconnect()
+      for (const property of GRID_PROPERTIES) container.style.removeProperty(property)
+    }
+  }, [zoomEnabled, fill, relayout])
+
+  useEffect(() => {
+    if (renderedRevisionRef.current === themeRevision) return
+    const timer = setTimeout(() => {
+      renderedRevisionRef.current = themeRevision
+      mountedRef.current?.refresh()
+    }, themeSwapDelayMs)
+    return () => clearTimeout(timer)
+  }, [themeRevision, themeSwapDelayMs])
+
+  const getZoom = useCallback((): Zoom | undefined => mountedRef.current?.zoom, [])
+
+  // Clearing the code leaves the last error in state; it no longer applies.
+  return { error: code ? error : null, containerRef, getZoom, zoomable }
 }
