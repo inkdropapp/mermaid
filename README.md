@@ -1,9 +1,10 @@
 # Mermaid for Inkdrop
 
-Draw flowcharts and diagrams with [mermaid.js](https://mermaid.js.org/) in Markdown code
-blocks.
+Draw flowcharts and diagrams with [Mermaid](https://mermaid.js.org/) syntax in Markdown
+code blocks. Diagrams are drawn by [Pele](https://pele.run/), a fast, small engine for
+Mermaid syntax, and follow your Inkdrop theme.
 
-![Flowchart example](docs/images/example-01.png)
+![Mermaid diagrams in Inkdrop](docs/images/example-01.png)
 
 This repository holds two things: the Inkdrop plugin, and the host-agnostic rendering
 package it is built on.
@@ -11,7 +12,7 @@ package it is built on.
 | Package                                | Published as                                              | What it is                                                                                                                              |
 | -------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | [`packages/plugin`](packages/plugin)   | `mermaid` (ipm)                                           | The Inkdrop plugin — settings, the full-screen viewer, and the wiring that hands the app's button, theme and print mode to the renderer |
-| [`packages/mermaid`](packages/mermaid) | [`@inkdropapp/mermaid`](packages/mermaid/README.md) (npm) | The renderer — themed diagrams, pan/zoom and the hover toolbar, as React components that import no Inkdrop API                          |
+| [`packages/mermaid`](packages/mermaid) | [`@inkdropapp/mermaid`](packages/mermaid/README.md) (npm) | The renderer — themed diagrams, zoom, math and the hover toolbar, as React components that import no Inkdrop API                        |
 
 The split exists because the renderer is useful outside the desktop app: the website demo
 and the mobile web editor previously each carried their own port of it. Everything
@@ -33,8 +34,8 @@ plugins are installed.
 npm install @inkdropapp/mermaid
 ```
 
-See [the package README](packages/mermaid/README.md) for the API, the required
-stylesheets, and the peer dependencies.
+See [the package README](packages/mermaid/README.md) for the API and the required
+stylesheets.
 
 ## Development
 
@@ -47,10 +48,13 @@ pnpm dev            # watch mode
 pnpm typecheck
 pnpm lint
 pnpm format
+pnpm --filter @inkdropapp/mermaid check:styles   # add --webkit for the mobile engine
 ```
 
 `lint` and `format` are configured once at the root ([oxlint](https://oxc.rs/) and
-[oxfmt](https://oxc.rs/)) and cover both packages.
+[oxfmt](https://oxc.rs/)) and cover both packages. `check:styles` renders every diagram
+type with the real theme tokens in Playwright and fails when a style rule no longer
+matches what Pele draws. Run it after bumping `pele`.
 
 To develop against a live Inkdrop, build and symlink the plugin directory:
 
@@ -67,9 +71,10 @@ ipm link packages/plugin
 - `packages/plugin/styles/mermaid.css` is **generated** at build time (copied from the
   renderer package by `scripts/copy-styles.mjs`) and is gitignored. Edit the source in
   `packages/mermaid/styles/`. The plugin's own `styles/fullscreen.css` is hand-written.
-- Mermaid is loaded lazily. It is roughly 3.4 MB, so it lives in its own chunk that is
-  only fetched once a diagram actually appears — worth re-checking the chunk sizes after
-  touching imports or the build config.
+- Diagram code is loaded lazily. Pele and the renderer (about 700 kB) live in their own
+  chunk, fetched once a diagram appears, and KaTeX (about 260 kB) in another, fetched only
+  when a diagram contains `$$` math. Re-check the chunk sizes after touching imports or
+  the build config: a chunk group also takes everything its modules import.
 
 ## Publishing
 
