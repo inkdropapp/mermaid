@@ -1,8 +1,10 @@
+import type { MermaidDiagramProps } from '@inkdropapp/mermaid'
 import type { ButtonProps, ModalProps } from '@inkdropapp/types'
 import { useLocalConfigValue } from 'inkdrop'
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 
 import { getEnv } from './env'
+import { useMath } from './use-math'
 
 /** Payload of the command that opens the full-screen viewer. */
 export interface OpenFullscreenDetail {
@@ -14,11 +16,15 @@ export type MermaidCommands = {
   'mermaid:open-fullscreen': OpenFullscreenDetail
 }
 
-// Lazy-loaded so `pele` (pulled in transitively by @inkdropapp/mermaid)
-// stays out of the eager entry bundle — this host is registered at activate()
-// and must import nothing heavy.
+// Lazy-loaded so `pele` (pulled in transitively by @inkdropapp/mermaid) stays
+// out of the eager entry bundle — this host is registered at activate() and
+// must import nothing heavy.
 const MermaidDiagram = lazy(() =>
   import('@inkdropapp/mermaid').then(m => ({ default: m.MermaidDiagram }))
+)
+
+const FullscreenDiagram: React.FC<MermaidDiagramProps> = props => (
+  <MermaidDiagram {...props} math={useMath(props.code)} />
 )
 
 /**
@@ -63,7 +69,7 @@ export const MermaidFullscreen: React.FC = () => {
       <div className="mermaid-fullscreen-stage">
         {diagram && (
           <Suspense fallback={null}>
-            <MermaidDiagram
+            <FullscreenDiagram
               code={diagram.code}
               panZoom={diagram.panZoom}
               Button={Button}

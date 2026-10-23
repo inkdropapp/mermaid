@@ -29,6 +29,14 @@
   }
 }
 
+/* $$...$$ labels, typeset as MathML (see createKatexMath), and the hidden
+   probe that measures them. Electron leaves the generic `math` family unset,
+   so it falls back to Times, which has no OpenType MATH table: big operators
+   don't grow and limits don't stack. Name each platform's math font first. */
+:is(.pele-math, .mermaid-math-probe) math {
+  font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', 'Noto Sans Math', math;
+}
+
 /* Print/export: resolve every light-dark() token to its light branch, so the
    diagram is legible on white paper whatever the app's theme. */
 .mermaid-diagram.mermaid-diagram-print {

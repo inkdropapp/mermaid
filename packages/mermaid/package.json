@@ -46,13 +46,13 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "pele": "1.6.0"
+    "pele": "1.9.0"
   },
   "devDependencies": {
     "@inkdropapp/css": "^0.10.1",
     "@types/react": "^19.3.0",
-    "playwright": "^1.64.0",
-    "react": "^19.3.0",
+    "playwright": "^1.64.1",
+    "react": "^19.3.1",
     "tsdown": "^0.23.1",
     "typescript": "^7.0.2"
   },
