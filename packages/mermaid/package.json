@@ -1,7 +1,7 @@
 {
   "name": "@inkdropapp/mermaid",
   "version": "0.2.0",
-  "description": "Host-agnostic React components for rendering themed, pannable Mermaid diagrams",
+  "description": "Host-agnostic React components for rendering themed, zoomable Mermaid diagrams with Pele",
   "keywords": [
     "diagram",
     "inkdrop",
@@ -42,19 +42,21 @@
     "dev": "tsdown --watch",
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
+    "check:styles": "node scripts/check-styles.mjs",
     "prepublishOnly": "pnpm build"
   },
+  "dependencies": {
+    "pele": "1.6.0"
+  },
   "devDependencies": {
+    "@inkdropapp/css": "^0.10.1",
     "@types/react": "^19.3.0",
-    "mermaid": "12.1.0",
-    "panzoom": "9.4.4",
+    "playwright": "^1.64.0",
     "react": "^19.3.0",
     "tsdown": "^0.23.1",
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
-    "mermaid": "^12.0.0",
-    "panzoom": "^9.4.4",
     "react": ">=18"
   }
 }

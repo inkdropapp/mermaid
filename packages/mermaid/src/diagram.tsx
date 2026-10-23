@@ -1,12 +1,15 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { useMermaidRendering, type UseMermaidRenderingOptions } from './render'
 import { MermaidToolbar, type MermaidButtonProps } from './toolbar'
-import { usePanZoom } from './use-panzoom'
+import { useZoomControls } from './zoom-controls'
 
 export type { MermaidButtonProps }
 
-export interface MermaidDiagramProps extends UseMermaidRenderingOptions {
+export interface MermaidDiagramProps extends Pick<
+  UseMermaidRenderingOptions,
+  'themeRevision' | 'themeSwapDelayMs'
+> {
   /** The diagram source (the body of a ```mermaid fenced block). */
   code: string
   /**
@@ -23,7 +26,10 @@ export interface MermaidDiagramProps extends UseMermaidRenderingOptions {
   printMode?: boolean
   /** Show the hover toolbar. Ignored in print mode. */
   toolbar?: boolean
-  /** Enable drag-to-pan and Ctrl/Cmd + scroll zoom. Ignored in print mode. */
+  /**
+   * Enable Ctrl/Cmd + scroll and pinch zoom, and drag-to-pan while zoomed in.
+   * Ignored in print mode.
+   */
   panZoom?: boolean
   /**
    * Size the diagram to its container instead of its natural size, and keep the
@@ -34,26 +40,18 @@ export interface MermaidDiagramProps extends UseMermaidRenderingOptions {
   onExpand?: () => void
 }
 
-const useDiagramId = () =>
-  useState(
-    () =>
-      `mermaid-${Math.random()
-        .toString(36)
-        .replace(/[^a-z]+/g, '')
-        .substring(0, 5)}`
-  )[0]
-
 /**
- * A rendered Mermaid diagram with optional pan/zoom and a hover toolbar.
+ * A Mermaid diagram rendered by Pele, with optional pan/zoom and a hover toolbar.
  *
  * Host-agnostic by construction: every host-specific value (the button
  * component, print mode, the theme signal) arrives as a prop, so the same
  * component serves the Inkdrop plugin, the website demo, and the mobile web
  * editor. See {@link MermaidDiagramProps}.
  *
- * Requires the `--mermaid-*` custom properties from `@inkdropapp/css/mermaid.css`
- * to be loaded — they carry no fallbacks, so without that sheet the diagram
- * renders unpainted.
+ * Colours come from the `--mermaid-*` custom properties in
+ * `@inkdropapp/css/mermaid.css`, mapped onto Pele's `--pele-*` variables by this
+ * package's stylesheet. They are live: a theme switch recolours a drawn diagram
+ * without re-rendering it. Without the token sheet, Pele's own palette applies.
  */
 export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   code,
@@ -66,36 +64,37 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   themeRevision,
   themeSwapDelayMs
 }) => {
-  const id = useDiagramId()
-  const { error, containerRef, renderNonce } = useMermaidRendering(id, code, printMode, {
+  const { error, containerRef, getZoom, zoomable } = useMermaidRendering(code, {
+    printMode,
+    panZoom,
+    fill,
     themeRevision,
     themeSwapDelayMs
   })
-  const controls = usePanZoom(containerRef, renderNonce, panZoom && !printMode)
+  const controls = useZoomControls(getZoom)
 
-  const className = fill ? 'mermaid-diagram mermaid-diagram-fill' : 'mermaid-diagram'
+  const className = [
+    'mermaid-diagram',
+    fill && 'mermaid-diagram-fill',
+    printMode && 'mermaid-diagram-print'
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <div className={className}>
       <div className="mermaid-diagram-content">
-        <div className={printMode ? '' : 'mermaid-dot-grid'} ref={containerRef} />
+        <div className={printMode ? undefined : 'mermaid-dot-grid'} ref={containerRef} />
       </div>
       {toolbar && !printMode && (
         <MermaidToolbar
           error={error}
-          panZoom={panZoom}
+          // Inline, a diagram that already fits isn't zoomable; full screen is.
+          panZoom={panZoom && zoomable}
           controls={controls}
           Button={Button}
           onExpand={onExpand}
         />
-      )}
-      {error && (
-        <div className="ui error message">
-          <div className="header">Failed to render Mermaid</div>
-          <div>
-            <pre>{error.message}</pre>
-          </div>
-        </div>
       )}
     </div>
   )

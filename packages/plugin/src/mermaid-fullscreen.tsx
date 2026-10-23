@@ -14,7 +14,7 @@ export type MermaidCommands = {
   'mermaid:open-fullscreen': OpenFullscreenDetail
 }
 
-// Lazy-loaded so `mermaid` (pulled in transitively by @inkdropapp/mermaid)
+// Lazy-loaded so `pele` (pulled in transitively by @inkdropapp/mermaid)
 // stays out of the eager entry bundle — this host is registered at activate()
 // and must import nothing heavy.
 const MermaidDiagram = lazy(() =>
