@@ -6,6 +6,7 @@ import React, { useContext, useMemo } from 'react'
 import { getEnv } from './env'
 import type { MermaidCommands } from './mermaid-fullscreen'
 import { useConfig } from './use-config'
+import { useMath } from './use-math'
 
 /**
  * Inkdrop adapter around `<MermaidDiagram>`: everything host-specific is read
@@ -23,6 +24,7 @@ const Mermaid: React.FC<CodeComponentProps> = ({ children }) => {
   }, [children])
 
   const { toolbar, panZoom } = useConfig()
+  const math = useMath(code)
   const { printMode } = useContext(markdownRenderer.Context)
   // Colours follow the theme live, but a theme can change the font labels are
   // measured in; this is the same keyPath the app's theme manager watches.
@@ -41,6 +43,7 @@ const Mermaid: React.FC<CodeComponentProps> = ({ children }) => {
       toolbar={toolbar}
       panZoom={panZoom}
       themeRevision={theme}
+      math={math}
       onExpand={openFullscreen}
     />
   )

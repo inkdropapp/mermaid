@@ -20,9 +20,20 @@ export default defineConfig({
     codeSplitting: {
       groups: [
         {
+          // Small modules both the entry and the lazy chunk use. Grouped
+          // apart, or the mermaid group would take them along with
+          // src/mermaid.tsx and the entry would load that chunk eagerly.
           name: 'env',
-          test: /[\\/]src[\\/]env\./,
+          test: /[\\/]src[\\/](env|use-math)\./,
           priority: 20
+        },
+        {
+          // KaTeX, loaded only once a diagram contains math (see use-math.ts).
+          // src/math.ts stays out of every group: it imports the package, which
+          // a group would pull in with it.
+          name: 'katex',
+          test: /[\\/]node_modules[\\/]katex[\\/]/,
+          priority: 15
         },
         {
           // Everything Mermaid-heavy, kept out of the eager entry chunk. The

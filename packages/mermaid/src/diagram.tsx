@@ -8,7 +8,7 @@ export type { MermaidButtonProps }
 
 export interface MermaidDiagramProps extends Pick<
   UseMermaidRenderingOptions,
-  'themeRevision' | 'themeSwapDelayMs'
+  'themeRevision' | 'themeSwapDelayMs' | 'math'
 > {
   /** The diagram source (the body of a ```mermaid fenced block). */
   code: string
@@ -62,14 +62,16 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   fill = false,
   onExpand,
   themeRevision,
-  themeSwapDelayMs
+  themeSwapDelayMs,
+  math
 }) => {
   const { error, containerRef, getZoom, zoomable } = useMermaidRendering(code, {
     printMode,
     panZoom,
     fill,
     themeRevision,
-    themeSwapDelayMs
+    themeSwapDelayMs,
+    math
   })
   const controls = useZoomControls(getZoom)
 

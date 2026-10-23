@@ -1,5 +1,6 @@
 import {
   mount,
+  type MathResolver,
   type Mounted,
   type MountOptions,
   type RenderResult,
@@ -84,6 +85,12 @@ export interface UseMermaidRenderingOptions {
    * swap synchronously.
    */
   themeSwapDelayMs?: number
+  /**
+   * Typesets `$$...$$` in labels; without it they show the TeX source. Keep it
+   * stable (module-level): a new function re-renders the diagram. See
+   * `createKatexMath`.
+   */
+  math?: MathResolver
 }
 
 /**
@@ -105,7 +112,8 @@ export const useMermaidRendering = (
     panZoom = true,
     fill = false,
     themeRevision,
-    themeSwapDelayMs = DEFAULT_THEME_SWAP_DELAY_MS
+    themeSwapDelayMs = DEFAULT_THEME_SWAP_DELAY_MS,
+    math
   }: UseMermaidRenderingOptions = {}
 ) => {
   const [error, setError] = useState<Error | null>(null)
@@ -143,6 +151,7 @@ export const useMermaidRendering = (
   const options = useMemo<MountOptions>(
     () => ({
       ...RENDER_OPTIONS,
+      math,
       zoom: zoomEnabled ? (fill ? FILL_ZOOM_OPTIONS : INLINE_ZOOM_OPTIONS) : false,
       onRender: result => {
         relayout(result)
@@ -150,7 +159,7 @@ export const useMermaidRendering = (
       },
       onError: err => setError(toError(err))
     }),
-    [zoomEnabled, fill, relayout]
+    [zoomEnabled, fill, math, relayout]
   )
 
   useEffect(() => {

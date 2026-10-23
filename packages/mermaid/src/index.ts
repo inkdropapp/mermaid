@@ -7,6 +7,9 @@ export type { UseMermaidRenderingOptions } from './render'
 export { useZoomControls } from './zoom-controls'
 export type { ZoomControls } from './zoom-controls'
 
+export { createKatexMath } from './katex-math'
+export type { KatexLike } from './katex-math'
+
 export { MermaidToolbar } from './toolbar'
 export type { MermaidToolbarProps } from './toolbar'
 
