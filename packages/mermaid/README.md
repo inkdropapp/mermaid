@@ -70,6 +70,7 @@ function Diagram({ code }: { code: string }) {
 | `toolbar`          | `true`  | Show the hover toolbar. Ignored in print mode.                                                                                                  |
 | `panZoom`          | `true`  | Enable Ctrl/Cmd + scroll and pinch zoom, and drag-to-pan while zoomed. Inline, only diagrams shrunk to fit are zoomable. Ignored in print mode. |
 | `fill`             | `false` | Fit the diagram to its container in both axes, make any diagram zoomable, and keep the toolbar visible. For full-screen / lightbox shells.      |
+| `center`           | `false` | Centre the drawing horizontally on its canvas instead of aligning it to the left. A `fill` diagram is always centred.                           |
 | `math`             | —       | Typesets `$$...$$` in labels; without it they show the TeX source. See [Math](#math).                                                           |
 | `themeRevision`    | —       | Any value that changes when the host's theme changes; re-measures labels in the new theme's font.                                               |
 | `themeSwapDelayMs` | `400`   | Wait before re-measuring, so the new theme's stylesheet has swapped in. Set `0` for synchronous theme swaps.                                    |

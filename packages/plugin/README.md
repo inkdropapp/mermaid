@@ -93,10 +93,11 @@ Mermaid's `%%{init}%%` theme variables are not supported.
 
 Configure the plugin in Preferences → Plugins → mermaid:
 
-| Option         | Default | Description                                                                         |
-| -------------- | ------- | ----------------------------------------------------------------------------------- |
-| **Pan & Zoom** | On      | Ctrl/Cmd + scroll or pinch to zoom rendered diagrams, and drag to pan while zoomed. |
-| **Toolbar**    | On      | Show a hover toolbar with zoom controls and a full-screen button.                   |
+| Option              | Default | Description                                                                                                  |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| **Pan & Zoom**      | On      | Ctrl/Cmd + scroll or pinch to zoom rendered diagrams, and drag to pan while zoomed.                          |
+| **Toolbar**         | On      | Show a hover toolbar with zoom controls and a full-screen button.                                            |
+| **Center Diagrams** | Off     | Place rendered diagrams in the middle of the canvas instead of on its left. Full screen always centres them. |
 
 ## Known issues
 

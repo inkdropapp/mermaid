@@ -36,6 +36,11 @@ export interface MermaidDiagramProps extends Pick<
    * toolbar visible rather than hover-gated. For full-screen / lightbox shells.
    */
   fill?: boolean
+  /**
+   * Centre the drawing horizontally on its canvas instead of aligning it to the
+   * left. A `fill` diagram is always centred.
+   */
+  center?: boolean
   /** When set, the toolbar shows an expand button that calls this. */
   onExpand?: () => void
 }
@@ -60,6 +65,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   toolbar = true,
   panZoom = true,
   fill = false,
+  center = false,
   onExpand,
   themeRevision,
   themeSwapDelayMs,
@@ -78,6 +84,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   const className = [
     'mermaid-diagram',
     fill && 'mermaid-diagram-fill',
+    center && 'mermaid-diagram-center',
     printMode && 'mermaid-diagram-print'
   ]
     .filter(Boolean)

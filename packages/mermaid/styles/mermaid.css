@@ -38,6 +38,14 @@
   }
 }
 
+/* `center` variant: the drawing sits in the middle of the canvas rather than
+   at its left edge. Only at rest: a zoomed drawing covers the canvas, and
+   Pele's inline margin and display while zoomed override these. */
+.mermaid-diagram.mermaid-diagram-center .mermaid-diagram-content > div > svg {
+  display: block;
+  margin-inline: auto;
+}
+
 /* A fenced block in the preview sits in a padded card, the `pre` that
    @inkdropapp/css/markdown.css styles. Hand the card's padding to the canvas,
    so the dot grid fills the card up to its border instead of stopping 16px
