@@ -1,7 +1,7 @@
 /* Full-screen viewer chrome — Inkdrop's Modal sized to a large canvas, with the
    diagram itself rendered by @inkdropapp/mermaid's `fill` variant (which owns
    the sizing and keeps the toolbar visible). Everything here is the shell:
-   modal dimensions, the padded stage, and the close button. */
+   modal dimensions, the stage, and the close button. */
 .modal-container.mermaid-fullscreen {
   .modal-content {
     width: 100vw;
@@ -15,7 +15,9 @@
       height: 100%;
       overflow: hidden;
       background-color: var(--modal-box-content-background);
-      padding: 2em;
+      /* Room around the drawing, given to the canvas rather than taken here,
+         so the dot grid runs to the edges of the stage. */
+      --dot-grid-padding: 2em;
 
       .ui.button.close-button {
         position: absolute;

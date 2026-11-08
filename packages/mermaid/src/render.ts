@@ -35,13 +35,19 @@ const toError = (err: unknown): Error =>
 /**
  * Size the SVG to the largest box that fits the container in both axes, for
  * the `fill` variant. Pele only fits a diagram to its container's width, so a
- * tall diagram would otherwise run off the bottom of a full-screen shell.
+ * tall diagram would otherwise run off the bottom of a full-screen shell. The
+ * box is the container's content box: its padding (`--dot-grid-padding`)
+ * is the margin around the drawing, which Pele's zoom draws over.
  */
 const fitToContainer = (container: HTMLElement, { width, height }: RenderResult) => {
   const svg = container.querySelector<SVGSVGElement>(':scope > svg')
-  const { clientWidth, clientHeight } = container
-  if (!svg || !width || !height || !clientWidth || !clientHeight) return
-  svg.style.width = `${Math.min(clientWidth, (clientHeight * width) / height)}px`
+  const style = getComputedStyle(container)
+  const boxWidth =
+    container.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+  const boxHeight =
+    container.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+  if (!svg || !width || !height || boxWidth <= 0 || boxHeight <= 0) return
+  svg.style.width = `${Math.min(boxWidth, (boxHeight * width) / height)}px`
   svg.style.maxWidth = 'none'
 }
 
