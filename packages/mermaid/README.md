@@ -85,8 +85,8 @@ being selected and its stylesheet being applied.
 
 ### Full-screen
 
-The package renders the diagram; the host supplies the shell (backdrop, padding, close
-button). Pass `fill` so the diagram sizes to that shell:
+The package renders the diagram; the host supplies the shell (backdrop, close button).
+Pass `fill` so the diagram sizes to that shell:
 
 ```tsx
 <div className="my-lightbox">
@@ -95,8 +95,27 @@ button). Pass `fill` so the diagram sizes to that shell:
 </div>
 ```
 
+For room around the drawing, set `--dot-grid-padding` on the shell instead of padding it.
+The canvas takes that padding inside itself, so the dot grid still runs to the shell's
+edges, and the toolbar moves in by the same amount. Like `padding`, it takes one to four
+lengths:
+
+```css
+.my-lightbox {
+  --dot-grid-padding: 2em;
+}
+```
+
 The zoom level is kept when the shell resizes, and the dot grid behind the diagram pans
 and zooms with it.
+
+### Code-block cards
+
+A diagram rendered directly inside a `pre` (a fenced block in the preview) takes over the
+card's padding the same way, so the grid fills the card up to its border. The rule that
+does this is unlayered, so a theme can't change it by padding `pre`; it sets
+`--mermaid-card-padding` (default `16px`, one to four lengths) instead, on `pre` or any
+ancestor. Print keeps the card's own padding.
 
 ### Math
 

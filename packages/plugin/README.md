@@ -75,6 +75,8 @@ Diagrams match your active Inkdrop theme with no configuration. Their colours co
 
 Exports and prints render in light mode, so diagrams stay legible on white paper.
 
+The dot grid behind a diagram runs to the edges of its code block. Theme authors who pad code blocks differently set `--mermaid-card-padding` (default `16px`; one to four lengths, like `padding`) rather than the `pre`'s padding, which diagrams replace.
+
 ### Per-diagram styling
 
 To change the colours of individual nodes, use Mermaid's `classDef` and `style` statements:
