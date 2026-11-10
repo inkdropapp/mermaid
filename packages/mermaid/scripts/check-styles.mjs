@@ -341,7 +341,6 @@ async function checkLayout(browser) {
         frames
       } = window.kit
 
-      // A fenced block: the card's padding moves onto the canvas.
       await run('card', name => {
         const card = diagram(name)
         if (paddings(card.outer) !== '0px 0px 0px 0px')
@@ -353,7 +352,6 @@ async function checkLayout(browser) {
         toolbarAt(name, card, 16, 16)
       })
 
-      // A theme sets --mermaid-card-padding from its layer, as one value or several.
       await run('themed card', name => {
         const card = diagram(name, { wrapperClass: 'themed' })
         if (paddings(card.outer) !== '0px 0px 0px 0px')
@@ -369,7 +367,6 @@ async function checkLayout(browser) {
         toolbarAt(name, card, 12, 8)
       })
 
-      // Print keeps the card's own padding: there is no grid.
       await run('print card', name => {
         const card = diagram(name, { print: true })
         if (paddings(card.outer) !== '16px 16px 16px 16px')
@@ -380,7 +377,6 @@ async function checkLayout(browser) {
 
       await run('center', name => centred(name, diagram(name, { variants: ['center'] })))
 
-      // The `center` setting changes on a drawn diagram, at rest and zoomed.
       await run('center toggle', async name => {
         const toggled = diagram(name, { zoom: true })
         const center = on => toggled.root.classList.toggle('mermaid-diagram-center', on)
@@ -400,7 +396,6 @@ async function checkLayout(browser) {
         centred(`${name} (on again)`, toggled)
       })
 
-      // Zoomed in a card, centred or not, the drawing covers the canvas.
       // Remember the viewBox, to tell that the drag below pans.
       for (const name of zoomedCases) {
         await run(name, async () => {
@@ -415,8 +410,6 @@ async function checkLayout(browser) {
         })
       }
 
-      // A full-screen shell sets --mermaid-diagram-inset; the canvas fills it, the
-      // drawing fits inside the padding, and the toolbar keeps clear of it.
       for (const [name, wrapperClass] of [
         ['fill', 'shell'],
         ['fill, short shell', 'shell short']
@@ -431,7 +424,6 @@ async function checkLayout(browser) {
         })
       }
 
-      // Detached, the container has no size or padding: leave the SVG alone.
       await run('fit, detached', name => {
         const detached = document.createElement('div')
         detached.innerHTML = '<svg></svg>'
@@ -442,7 +434,6 @@ async function checkLayout(browser) {
     }, zoomedCases)
   )
 
-  // Drag each zoomed drawing towards the top-left: it pans, and still covers the canvas.
   for (const name of zoomedCases) {
     await step(async () => {
       const canvas = page.locator(`[data-case="${name}"] .mermaid-diagram-content > div`)

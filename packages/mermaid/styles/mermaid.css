@@ -46,8 +46,7 @@
   }
 }
 
-/* `center` variant: the drawing sits in the middle of the canvas rather than
-   at its left edge. Only at rest: a zoomed drawing covers the canvas, and
+/* `center` variant. Only at rest: a zoomed drawing covers the canvas, and
    Pele's inline margin while zoomed overrides this. */
 .mermaid-diagram.mermaid-diagram-center .mermaid-diagram-content > div > svg {
   margin-inline: auto;

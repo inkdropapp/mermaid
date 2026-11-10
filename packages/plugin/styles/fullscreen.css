@@ -15,8 +15,6 @@
       height: 100%;
       overflow: hidden;
       background-color: var(--modal-box-content-background);
-      /* Room around the drawing, given to the canvas rather than taken here,
-         so the dot grid runs to the edges of the stage. */
       --mermaid-diagram-inset: 2em;
 
       .ui.button.close-button {
