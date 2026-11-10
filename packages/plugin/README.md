@@ -75,6 +75,8 @@ Diagrams match your active Inkdrop theme with no configuration. Their colours co
 
 Exports and prints render in light mode, so diagrams stay legible on white paper.
 
+The dot grid behind a diagram runs to the edges of its code block. Theme authors who pad code blocks differently set `--mermaid-card-padding` (default `16px`; one to four lengths, like `padding`) rather than the `pre`'s padding, which diagrams replace.
+
 ### Per-diagram styling
 
 To change the colours of individual nodes, use Mermaid's `classDef` and `style` statements:
@@ -93,10 +95,11 @@ Mermaid's `%%{init}%%` theme variables are not supported.
 
 Configure the plugin in Preferences → Plugins → mermaid:
 
-| Option         | Default | Description                                                                         |
-| -------------- | ------- | ----------------------------------------------------------------------------------- |
-| **Pan & Zoom** | On      | Ctrl/Cmd + scroll or pinch to zoom rendered diagrams, and drag to pan while zoomed. |
-| **Toolbar**    | On      | Show a hover toolbar with zoom controls and a full-screen button.                   |
+| Option              | Default | Description                                                                                                  |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| **Pan & Zoom**      | On      | Ctrl/Cmd + scroll or pinch to zoom rendered diagrams, and drag to pan while zoomed.                          |
+| **Toolbar**         | On      | Show a hover toolbar with zoom controls and a full-screen button.                                            |
+| **Center Diagrams** | Off     | Place rendered diagrams in the middle of the canvas instead of on its left. Full screen always centres them. |
 
 ## Known issues
 

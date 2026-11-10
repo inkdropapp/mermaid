@@ -23,7 +23,7 @@ const Mermaid: React.FC<CodeComponentProps> = ({ children }) => {
     return ''
   }, [children])
 
-  const { toolbar, panZoom } = useConfig()
+  const { toolbar, panZoom, center } = useConfig()
   const math = useMath(code)
   const { printMode } = useContext(markdownRenderer.Context)
   // Colours follow the theme live, but a theme can change the font labels are
@@ -42,6 +42,7 @@ const Mermaid: React.FC<CodeComponentProps> = ({ children }) => {
       printMode={printMode}
       toolbar={toolbar}
       panZoom={panZoom}
+      center={center}
       themeRevision={theme}
       math={math}
       onExpand={openFullscreen}

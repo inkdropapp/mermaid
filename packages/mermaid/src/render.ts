@@ -3,12 +3,12 @@ import {
   type MathResolver,
   type Mounted,
   type MountOptions,
-  type RenderResult,
   type Zoom,
   type ZoomOptions
 } from 'pele'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { fitToContainer } from './fit'
 import { RENDER_OPTIONS } from './render-options'
 
 /** Default wait for a newly-selected theme's stylesheet to swap in. */
@@ -31,19 +31,6 @@ const FIT_EPSILON = 0.999
 
 const toError = (err: unknown): Error =>
   err instanceof Error ? err : new Error('Unknown error', { cause: err })
-
-/**
- * Size the SVG to the largest box that fits the container in both axes, for
- * the `fill` variant. Pele only fits a diagram to its container's width, so a
- * tall diagram would otherwise run off the bottom of a full-screen shell.
- */
-const fitToContainer = (container: HTMLElement, { width, height }: RenderResult) => {
-  const svg = container.querySelector<SVGSVGElement>(':scope > svg')
-  const { clientWidth, clientHeight } = container
-  if (!svg || !width || !height || !clientWidth || !clientHeight) return
-  svg.style.width = `${Math.min(clientWidth, (clientHeight * width) / height)}px`
-  svg.style.maxWidth = 'none'
-}
 
 /**
  * Move and scale the container's background (the host's dot grid) with the

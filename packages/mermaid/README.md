@@ -70,6 +70,7 @@ function Diagram({ code }: { code: string }) {
 | `toolbar`          | `true`  | Show the hover toolbar. Ignored in print mode.                                                                                                  |
 | `panZoom`          | `true`  | Enable Ctrl/Cmd + scroll and pinch zoom, and drag-to-pan while zoomed. Inline, only diagrams shrunk to fit are zoomable. Ignored in print mode. |
 | `fill`             | `false` | Fit the diagram to its container in both axes, make any diagram zoomable, and keep the toolbar visible. For full-screen / lightbox shells.      |
+| `center`           | `false` | Centre the drawing horizontally on its canvas instead of aligning it to the left. A `fill` diagram is always centred.                           |
 | `math`             | —       | Typesets `$$...$$` in labels; without it they show the TeX source. See [Math](#math).                                                           |
 | `themeRevision`    | —       | Any value that changes when the host's theme changes; re-measures labels in the new theme's font.                                               |
 | `themeSwapDelayMs` | `400`   | Wait before re-measuring, so the new theme's stylesheet has swapped in. Set `0` for synchronous theme swaps.                                    |
@@ -84,8 +85,8 @@ being selected and its stylesheet being applied.
 
 ### Full-screen
 
-The package renders the diagram; the host supplies the shell (backdrop, padding, close
-button). Pass `fill` so the diagram sizes to that shell:
+The package renders the diagram; the host supplies the shell (backdrop, close button).
+Pass `fill` so the diagram sizes to that shell:
 
 ```tsx
 <div className="my-lightbox">
@@ -94,8 +95,27 @@ button). Pass `fill` so the diagram sizes to that shell:
 </div>
 ```
 
+For room around the drawing, set `--mermaid-diagram-inset` on the shell instead of padding it.
+The canvas takes that padding inside itself, so the dot grid still runs to the shell's
+edges, and the toolbar moves in by the same amount. Like `padding`, it takes one to four
+lengths:
+
+```css
+.my-lightbox {
+  --mermaid-diagram-inset: 2em;
+}
+```
+
 The zoom level is kept when the shell resizes, and the dot grid behind the diagram pans
 and zooms with it.
+
+### Code-block cards
+
+A diagram rendered directly inside a `pre` (a fenced block in the preview) takes over the
+card's padding the same way, so the grid fills the card up to its border. The rule that
+does this is unlayered, so a theme can't change it by padding `pre`; it sets
+`--mermaid-card-padding` (default `16px`, one to four lengths) instead, on `pre` or any
+ancestor. Print keeps the card's own padding.
 
 ### Math
 

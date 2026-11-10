@@ -20,6 +20,12 @@ class InkdropPlugin implements IInkdropPlugin {
       type: 'boolean',
       description: 'Show a hover toolbar with the diagram type and zoom controls',
       default: true
+    },
+    center: {
+      title: 'Center Diagrams',
+      type: 'boolean',
+      description: 'Place rendered diagrams in the middle of the canvas instead of on its left',
+      default: false
     }
   }
 
