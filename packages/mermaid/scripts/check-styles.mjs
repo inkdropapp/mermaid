@@ -51,11 +51,13 @@ const UNUSED_TOKENS = {
 }
 
 /**
- * Knobs styles/mermaid.css reads with a fallback, for a theme to set. They
- * aren't in the token sheet, so they're exempt from the undefined-token check.
+ * Knobs styles/mermaid.css reads with a fallback, for a theme or host to set.
+ * They aren't in the token sheet, so they're exempt from the undefined-token
+ * check.
  */
 const THEME_KNOBS = {
-  'card-padding': 'Padding of the preview card around a diagram; defaults to 16px.'
+  'card-padding': 'Padding of the preview card around a diagram; defaults to 16px.',
+  'diagram-inset': 'Room between the canvas edge and the drawing and toolbar; defaults to 0px.'
 }
 
 /** Stylesheets from @inkdropapp/css that define the tokens and what they cascade from. */
@@ -311,7 +313,7 @@ async function checkLayout(browser) {
         .mde-preview pre.asymmetric { --mermaid-card-padding: 8px 12px; padding: 8px 12px; }
       }
       body { margin: 16px; } .mde-preview { width: 900px; }
-      .shell { width: 600px; height: 400px; --dot-grid-padding: 32px; }
+      .shell { width: 600px; height: 400px; --mermaid-diagram-inset: 32px; }
       .shell.short { height: 160px; }
     </style>
   </head><body><div class="mde-preview"></div></body></html>`)
@@ -413,7 +415,7 @@ async function checkLayout(browser) {
         })
       }
 
-      // A full-screen shell sets --dot-grid-padding; the canvas fills it, the
+      // A full-screen shell sets --mermaid-diagram-inset; the canvas fills it, the
       // drawing fits inside the padding, and the toolbar keeps clear of it.
       for (const [name, wrapperClass] of [
         ['fill', 'shell'],

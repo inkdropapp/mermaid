@@ -95,14 +95,14 @@ Pass `fill` so the diagram sizes to that shell:
 </div>
 ```
 
-For room around the drawing, set `--dot-grid-padding` on the shell instead of padding it.
+For room around the drawing, set `--mermaid-diagram-inset` on the shell instead of padding it.
 The canvas takes that padding inside itself, so the dot grid still runs to the shell's
 edges, and the toolbar moves in by the same amount. Like `padding`, it takes one to four
 lengths:
 
 ```css
 .my-lightbox {
-  --dot-grid-padding: 2em;
+  --mermaid-diagram-inset: 2em;
 }
 ```
 

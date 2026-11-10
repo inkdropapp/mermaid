@@ -4,7 +4,7 @@ import type { RenderResult } from 'pele'
  * Size the SVG to the largest box that fits the container in both axes, for
  * the `fill` variant. Pele only fits a diagram to its container's width, so a
  * tall diagram would otherwise run off the bottom of a full-screen shell. The
- * box is the container's content box: its padding (`--dot-grid-padding`)
+ * box is the container's content box: its padding (`--mermaid-diagram-inset`)
  * is the margin around the drawing, which Pele's zoom draws over.
  *
  * Self-contained (no imports at runtime): `pnpm check:styles` injects it into

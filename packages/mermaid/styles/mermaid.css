@@ -33,7 +33,7 @@
        the panned drawing both reach the canvas edge. */
     > div {
       box-sizing: border-box;
-      padding: var(--dot-grid-padding, 0px);
+      padding: var(--mermaid-diagram-inset);
 
       /* A block, as Pele makes it while zoomed: inline, the drawing would
          leave a line's descender gap beneath it, so the room below it would
@@ -66,7 +66,7 @@ pre:has(> .mermaid-diagram:not(.mermaid-diagram-print)) {
   padding: 0;
 
   > .mermaid-diagram {
-    --dot-grid-padding: var(--mermaid-card-padding, 16px);
+    --mermaid-diagram-inset: var(--mermaid-card-padding, 16px);
   }
 }
 
@@ -742,7 +742,7 @@ pre:has(> .mermaid-diagram:not(.mermaid-diagram-print)) {
   position: absolute;
   right: 0.2em;
   bottom: 0.2em;
-  margin: var(--dot-grid-padding, 0px);
+  margin: var(--mermaid-diagram-inset, 0px);
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -788,7 +788,7 @@ pre:has(> .mermaid-diagram:not(.mermaid-diagram-print)) {
 /* `fill` variant — the diagram sizes to its container rather than its natural
    size. For host-provided full-screen / lightbox shells, which supply the
    surrounding chrome (backdrop, close button) themselves. A shell that wants
-   room around the drawing sets --dot-grid-padding rather than padding
+   room around the drawing sets --mermaid-diagram-inset rather than padding
    itself, so the dot grid still reaches its edges. */
 .mermaid-diagram.mermaid-diagram-fill {
   width: 100%;
