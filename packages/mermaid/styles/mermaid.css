@@ -741,7 +741,7 @@ pre:has(> .mermaid-diagram:not(.mermaid-diagram-print)) {
   position: absolute;
   right: 0.2em;
   bottom: 0.2em;
-  margin: var(--mermaid-diagram-inset, 0px);
+  margin: var(--mermaid-diagram-inset);
   z-index: 1;
   display: flex;
   flex-direction: column;
