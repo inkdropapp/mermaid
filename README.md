@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This repository has moved to [inkdropapp/plugins](https://github.com/inkdropapp/plugins): [`packages/mermaid`](https://github.com/inkdropapp/plugins/tree/main/packages/mermaid), [`libs/mermaid`](https://github.com/inkdropapp/plugins/tree/main/libs/mermaid). It is archived and read-only; please open issues and pull requests there.
+
 # Mermaid for Inkdrop
 
 Draw flowcharts and diagrams with [Mermaid](https://mermaid.js.org/) syntax in Markdown
